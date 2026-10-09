@@ -1,0 +1,153 @@
+# Lv.html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I Love You</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            overflow: hidden;
+            height: 100vh;
+            font-family: 'Arial', sans-serif;
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .small-text {
+            position: absolute;
+            color: #ff1a1a;
+            font-size: 11px;
+            font-weight: bold;
+            white-space: nowrap;
+            opacity: 0;
+            transform: translate(-50%, -50%);
+            text-shadow: 0 0 4px rgba(255, 0, 0, 0.9), 0 0 10px rgba(255, 0, 0, 0.4);
+            filter: blur(0.5px);
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .center-text {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            font-size: 55px;
+            font-weight: 900;
+            color: #ffffff;
+            opacity: 0;
+            white-space: nowrap;
+            z-index: 100;
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.8), 0 0 25px rgba(255, 255, 255, 0.4);
+            filter: blur(0.8px);
+            transition: opacity 1.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container">
+        <div id="center-text" class="center-text"></div>
+    </div>
+
+    <script>
+        const container = document.getElementById('canvas-container');
+        const centerTextEl = document.getElementById('center-text');
+
+        const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+        const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+
+        const centerX = vw / 2;
+        const centerY = vh / 2;
+        const scale = Math.min(vw, vh) / 26;
+
+        const points = [];
+
+        // Проверка: точка внутри сердца?
+        function isInsideHeart(x, y) {
+            let nx = (x - centerX) / scale;
+            let ny = -(y - centerY) / scale;
+            let a = nx * nx + ny * ny - 1;
+            let formula = a * a * a - nx * nx * ny * ny * ny;
+            return formula <= 0;
+        }
+
+        let minX = Infinity, maxX = -Infinity;
+        let minY = Infinity, maxY = -Infinity;
+
+        // Заполняем ВСЮ площадь сердца (шаг 26 = пореже, как вы просили)
+        const step = 26;
+        for (let y = 0; y < vh; y += step) {
+            for (let x = 0; x < vw; x += step) {
+                let px = x + (Math.random() - 0.5) * step;
+                let py = y + (Math.random() - 0.5) * step;
+
+                if (isInsideHeart(px, py)) {
+                    points.push({ x: px, y: py });
+                    
+                    if (px < minX) minX = px;
+                    if (px > maxX) maxX = px;
+                    if (py < minY) minY = py;
+                    if (py > maxY) maxY = py;
+                }
+            }
+        }
+
+        const heartCenterX = (minX + maxX) / 2;
+        const heartCenterY = (minY + maxY) / 2;
+
+        // Сортировка: сверху вниз (как на эталоне — надписи появляются сверху)
+        points.sort((a, b) => {
+            if (Math.abs(a.y - b.y) > 5) return a.y - b.y;
+            return a.x - b.x;
+        });
+
+        const totalTime = 15000; // 15 секунд на все надписи
+        const delayPerPoint = totalTime / points.length;
+
+        const elements = [];
+
+        points.forEach((p, index) => {
+            const span = document.createElement('span');
+            span.className = 'small-text';
+            span.innerText = 'I love you';
+
+            span.style.left = p.x + 'px';
+            span.style.top = p.y + 'px';
+
+            const delay = index * (delayPerPoint / 1000);
+            span.style.transitionDelay = delay + 's';
+
+            container.appendChild(span);
+            elements.push(span);
+        });
+
+        // Белая надпись — по центру сердца
+        centerTextEl.style.left = heartCenterX + 'px';
+        centerTextEl.style.top = heartCenterY + 'px';
+
+        // Запуск красных надписей
+        setTimeout(() => {
+            elements.forEach(el => {
+                el.style.opacity = '1';
+            });
+        }, 100);
+
+        // Через 15 секунд — "I love you" белым
+        setTimeout(() => {
+            centerTextEl.innerText = "I love you";
+            centerTextEl.style.opacity = '1';
+        }, 15000);
+
+        // Через 3 секунды — меняется на "Ильдар"
+        setTimeout(() => {
+            centerTextEl.innerText = "Ильдар";
+        }, 18000);
+    </script>
+</body>
+</html>
